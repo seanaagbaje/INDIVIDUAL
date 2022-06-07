@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link rel="stylesheet" href="design.css">
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>After School Club</title>
+    <script src="products.js"></script>
+    <script src="https://unpkg.com/vue"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+
+</head>
+
+<body class="bg-dark text-white">
+    <div class="container-fluid p-5" id="app">
+        <div class="row d-flex justify-content-between">
+            <div class="col">
+                <h1 v-text="sitename"></h1>
+            </div>
+            
+            <div class="col d-flex justify-content-end">
+                <button class="btn btn-dark btn-outline-secondary" v-if="cart.length > 0" v-show="!showProduct" v-on:click='showCheckout'>
+                    <span class="fas fa-cart-plus"></span> Cart <span class="badge bg-danger">{{cart.length}}</span>
+                </button>
+                <button class="btn btn-success" v-on:click="showCheckout" v-show="showProduct"> 
+                    Inventory
+                </button>
+            </div>
+        </div>
+
+        
+        <div class="root">            
+            <main>
+                <div class="row" v-if='!showProduct'>
+                    <div class="title-bar">
+                        <!-- Bar containing all sort inputs -->
+                        <div class="row py-4 d-flex justify-content-between">
+                            <div class="row col">
+                                <div class="col-md-4">
+                                    <select class="btn-secondary btn col-md-12 form-select" name="sortBy" id="select" v-model="sortBy"> Sort
+                                        <option disabled value="sort">--Sort By--</option>
+                                        <option value="subject">Subject</option>
+                                        <option value="location">Location</option>
+                                        <option value="price">Price</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="col-md-2">
+                                    <button v-on:click="ascending = !ascending" class="sort-button btn-secondary btn">
+                                        <i v-if="ascending" class="fa fa-sort-up">Ascending</i>
+                                        <i v-else class="fa fa-sort-down">Descending</i>
+                                    </button>
+                                </div>
+        
+                                <div class="col row d-flex justify-content-end">
+                                    <div class="col-8">
+                                        <input v-on:input="filteredList" class="form-control me-2" type="text" v-model="search" placeholder="Search">
+                                    </div>
+                                    <div class="col-1">
+                                        <button class="btn btn-secondary"><i class="fa fa-search"></i></button>
+                                    </div> 
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- lessons-->
+                    <div class="col-md-3 py-2" v-for="(lessons, index) in sortedLessons" :key="`lesson--${index}`">
+                        <div class=" bg-secondary text-white rounded">
+                            <img v-bind:src="lessons.image" class="card-img-top" width="200dp" height="250dp">
+                            <div class="card-body">
+                                <h2 class="card-title my-1">{{lessons.title}}</h2>
+                                <h4 class="card-text">{{lessons.location}}</h4>
+                                <div class="card-text my-1">Price: ${{lessons.price}}</div>
+                                <div class="card-text my-1">Number of Spaces: {{ lessons.Numberofspaces}}</div>
+                                <div class="my-2">
+                                    <button class="btn btn-success" v-on:click="addToCart(lessons)" :disabled="!lessons.Numberofspaces">Add To Cart</button>
+                                    <span v-if="lessons.Numberofspaces">{{'Left '+ lessons.Numberofspaces}}</span>
+                                    <span v-else>This lesson is fully booked!</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                <div v-else class="row">
+                    <div class="py-4 d-flex justify-content-between">
+                        <h4>Total Amount: {{total}}</h4>
+                    </div>
+                    
+                    <div class="col-md-2 pt-5" v-for="(item, index) in cart" :key="`cart--${index}`">
+                        <div class="card bg-secondary text-white rounded">
+                            <img v-bind:src="item.image" class="card-img-top" width="100dp" height="150dp">
+                            <div class="card-body">
+                                <h2 class="card-title my-1">{{item.subject}}</h2>
+                                <h4 class="card-text">{{item.location}}</h4>
+                                <div class="card-text mt-3">Price: ${{item.price}}</div>
+                                <div class="card-text my-1">Number of Spaces: {{ item.Numberofspaces}}</div>
+                                <div class="my-2">
+                                    <button class="btn btn-danger" v-on:click="removeFromCart(item)">Remove</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div v-if="!cart.length > 0" class="cart__item"
+                        style="background-color: transparent; padding: 20px;">
+                        <div style="text-align: center; color: grey; font-size: 20px; font-weight: bold;">
+                        List Empty</div>
+                    </div>
+                    <div class="container my-3">
+                        <div class="row col-8 d-flex justify-content-end">
+                            <div class="col">
+                                <h3>Student Details</h3>
+                            </div>
+                            <div class="col">
+                                <input v-model="user.name" type="text" class="form-control" placeholder="Enter Name" required>
+                            </div>
+                            <div class="col">
+                                <input v-model="user.number" type="number" class="form-control" placeholder="Enter Phone Number" required>
+                            </div>
+                            <div class="col-md-2">
+                                <input type="submit" class="btn btn-primary" @click="submit" value="Checkout">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+        
+    </div>
+    <script type="text/javascript">
+        const webstore = new Vue({
+            el: '#app',
+            data: {
+                sitename: 'After School Lessons',
+                lessons: [],
+                cart: [],
+                showProduct: false,
+                order: {
+                    firstName: '',
+                    lastName: '',
+                },
+                ascending: true,
+                sortBy: 'subject',
+                search: '',
+                type: '',
+                user: {
+                    name: '',
+                    number: ''
+                }
+            },
+            async created() {
+                let course = await fetch("https://individualcw.herokuapp.com/collection/lesson")
+                let result = await course.json()
+                this.lessons = result
+            },
+            methods: {
+                addToCart(lesson) {
+                    this.lessons.find(item => item.id == lesson.id).Numberofspaces -= 1;
+                    this.cart.push({ id: (this.cart.length + 1), ...lesson });
+                    // // console.log('adding to cart', lesson.id)
+
+                    // this.cart.push({
+
+                    //     id: lessons.id,
+                    //     subject: lessons.subject,
+                    //     location: lessons.location,
+                    //     price: lessons.price,
+                    //     Numberofspaces: lessons.Numberofspaces,
+                    //     image: lessons.image
+
+                    // })
+
+                    // for (let i = 0; i < this.lessons.length; i++) {
+
+                    //     if (lessons.subject === this.lessons[i].subject) {
+
+                    //         let newSpace = this.lessons[i].Numberofspaces - 1
+                    //         this.lessons[i].Numberofspaces = newSpace
+                    //     }
+                    // }
+                },
+                removeFromCart(lessons) {
+                    if (confirm('You are about to delete this!')) {
+                        this.cart = [...this.cart].filter(item => item.cartId != lesson.cartId)
+                    }
+                    // for (let i = 0; i < this.cart.length; i++) {
+
+                    //     if (this.cart[i].subject === lessons.subject) {
+
+                    //         this.cart.splice(i, 1);
+
+                    //         lessons.Numberofspaces++;
+
+                    //         if (this.cart.length === 0) {
+
+                    //             this.showProduct = true;
+                    //         }
+                    //         break;
+                    //     }
+                    // }
+
+                    // for (let i = 0; i < this.lessons.length; i++) {
+
+                    //     if (lessons.subject === this.lessons[i].subject) {
+
+                    //         let newSpace = this.lessons[i].Numberofspaces + 1
+                    //         this.lessons[i].Numberofspaces = newSpace
+                    //     }
+                    // }
+                },
+                showCheckout() {
+                    this.showProduct = !this.showProduct;
+                },
+                submit() {
+                    
+                    let orders = {
+                        checkoutName: this.user.name,
+                        checkoutPhone: this.user.number,
+                        cartProduct: this.cart,
+                    }
+
+                    fetch('https://individualcw.herokuapp.com/collection/order', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        mode: "cors",
+                        cache: "no-store",
+                        body: JSON.stringify(orders),
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        this.putLesson()
+                    })
+                    .catch((error) => {
+                        console.log(error);
+                    });
+
+                },
+                putLesson() {
+                    let upd_spaces = []
+                    for (let i = 0; i < this.cart.length; i++) {
+
+                        for (let j = 0; j < this.lessons.length; j++) {
+                            if (this.lessons[j].id == this.cart[i].cartId) {
+                                fetch('https://individualcw.herokuapp.com/collection/lessons/' + this.lessons[j].id, {
+
+                                    method: 'PUT',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                    },
+                                    body: JSON.stringify({
+                                        "Numberofspaces": this.lessons[j].Numberofspaces
+                                    }),
+                                })
+                                .then(response => response.json())
+                            }
+                            
+                        }
+                    }
+                },
+                filteredList(){
+                    fetch('https://individualcw.herokuapp.com/collection/lessons/search?key_word=${this.search}')
+                    .then(response => {
+                        return response.json()
+                    })
+                    .then(data => {
+                        this.lessons = data
+                    })
+                },
+                phonenumber(number) {
+                    if ((number.match(phoneno))) {
+                        return true;
+                    } 
+                },
+            },
+            computed: {
+                total() {
+                    return this.cart.length > 0 ? this.cart.map(item => item.price).reduce((acc, cur) => acc + cur) : 0;
+                },
+
+                sortedLessons() {
+                    let sortedLessons = this.lessons;
+                    
+                    // Process search input
+                    if (this.search != '' && this.search) {
+                        sortedLessons = sortedLessons.filter((item) => {
+                            return item.subject
+                            .toUpperCase()
+                            .includes(this.search.toUpperCase())
+                        })
+                    }
+
+                    // Sort by alphabetical order
+                    sortedLessons = sortedLessons.sort((a, b) => {
+                        if (this.sortBy == 'subject') {
+                            let fa = a.subject.toLowerCase(), fb = b.subject.toLowerCase()
+                        
+                            if (fa < fb) {
+                            return -1
+                            }
+                            if (fa > fb) {
+                            return 1 
+                            }
+                            return 0
+                            
+                        // Sort by price
+                        } else if (this.sortBy == 'price') {
+                            return a.price - b.price
+
+                        // Sort by location
+                        } else if (this.sortBy == 'location') {
+                            let fa = a.location.toLowerCase(), fb = b.location.toLowerCase()
+                        
+                            if (fa < fb) {
+                            return -1
+                            }
+                            if (fa > fb) {
+                            return 1 
+                            }
+                            return 0
+                            
+                        } 
+                    })
+                    
+                    // Show sorted array in descending or ascending order
+                    if (!this.ascending) {
+                        sortedLessons.reverse()
+                    }
+
+                    return sortedLessons;
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>
